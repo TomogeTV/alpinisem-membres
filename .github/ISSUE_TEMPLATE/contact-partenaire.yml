@@ -1,0 +1,39 @@
+name: Contact partenaire
+description: Suivi d'un sponsor, mécène ou financeur public
+title: "[Partenaire] "
+labels: ["contact-partenaire", "partenaires"]
+body:
+  - type: markdown
+    attributes:
+      value: "⚠️ Repo public : pas de téléphone ni d'e-mail personnel ici. Les coordonnées restent dans la boîte mail Alpinis'EM."
+  - type: input
+    id: organisme
+    attributes:
+      label: Organisme
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options: [Sponsor, Mécénat, Subvention, Matériel, Média]
+  - type: dropdown
+    id: statut
+    attributes:
+      label: Statut
+      options: [À contacter, Dossier envoyé, Relancé, Rendez-vous, Signé, Refusé]
+    validations:
+      required: true
+  - type: input
+    id: montant
+    attributes:
+      label: Montant ou contrepartie visée
+  - type: input
+    id: relance
+    attributes:
+      label: "Date de relance (AAAA-MM-JJ)"
+      description: Utilisée par le récap hebdo des relances.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
