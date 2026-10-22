@@ -442,13 +442,9 @@ dialog.modal .mb{padding:20px 22px 24px;display:grid;gap:12px;font-size:15px;max
 .ok-note{display:none;padding:12px 14px;border-radius:14px;background:var(--ok-bg);color:var(--ok);font-weight:650;font-size:14px}
 
 /* ===== Écrans de compte ===== */
-.auth{min-height:100vh;display:grid;grid-template-columns:1fr minmax(0,520px);background:var(--bg)}
-.auth .pic{position:relative;background:#1a244f url(hero.jpg) center 30%/cover;color:var(--cream);display:flex;flex-direction:column;justify-content:space-between;padding:28px 32px}
-.auth .pic::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,28,66,.55),rgba(10,14,36,.9))}
-.auth .pic>*{position:relative}
-.auth .pic h2{font:900 clamp(48px,7vw,104px)/.86 var(--stamp);text-transform:uppercase}
-.auth .pic p{max-width:28em;opacity:.88;margin-top:14px}
-.auth .card{padding:calc(34px + env(safe-area-inset-top,0px)) var(--gutr) 40px var(--gut);display:flex;flex-direction:column;justify-content:center;gap:18px;max-width:520px;width:100%;margin:0 auto}
+.auth{min-height:100vh;display:grid;place-items:center;background:var(--bg);padding:calc(24px + env(safe-area-inset-top,0px)) var(--gutr) calc(32px + env(safe-area-inset-bottom,0px)) var(--gut)}
+.auth-in{width:100%;max-width:480px;display:grid;gap:22px}
+.auth .card{display:flex;flex-direction:column;gap:18px;width:100%}
 .auth .card h1{font:900 46px/.9 var(--stamp);text-transform:uppercase}
 .auth .card .sub{color:var(--muted)}
 .auth .tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--sunk);border-radius:14px;padding:4px;gap:4px}
@@ -462,7 +458,7 @@ dialog.modal .mb{padding:20px 22px 24px;display:grid;gap:12px;font-size:15px;max
 .auth .who .av{width:40px;height:40px;border-radius:50%;background:var(--navy);color:var(--on-navy);display:grid;place-items:center;font:800 16px var(--display);flex:none}
 .auth .msg{padding:12px 14px;border-radius:14px;background:var(--ice);color:var(--ink);font-size:14px}
 .auth .msg.err{background:var(--bad-bg)}
-@media (max-width:860px){.auth{grid-template-columns:1fr}.auth .pic{min-height:220px;padding:20px var(--gutr) 22px var(--gut)}.auth .pic h2{font-size:52px}.auth .pic p{display:none}.auth .row2{grid-template-columns:1fr}}
+@media (max-width:860px){.auth .row2{grid-template-columns:1fr}}
 
 /* ===== Espace : compléments ===== */
 .app{font-size:15px;line-height:1.5}
@@ -1046,6 +1042,13 @@ i.cp-idee{background:var(--muted)}i.cp-redaction{background:var(--navy)}i.cp-pre
 .reu .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 @media print{.side,.backbar,.top-acts,.alert{display:none!important}.app{display:block}.main{padding:0}}
 
+/* Bureau : 5 rôles, les deux dirigeants en tête */
+.roles{grid-template-columns:repeat(6,minmax(0,1fr))}
+.roles .role{grid-column:span 2}.roles .role.lead{grid-column:span 3}
+.roles .role h3{font-size:22px;overflow-wrap:break-word;hyphens:auto}
+@media (max-width:1100px){.roles{grid-template-columns:1fr 1fr}.roles .role,.roles .role.lead{grid-column:auto}}
+@media (max-width:560px){.roles{grid-template-columns:1fr}}
+
 /* ===== Nous rejoindre : le sommet de l'affiche, animé (WebGL) =====
    Ambiance unique dans les deux thèmes : coucher de soleil sur le massif, drapeau EM Normandie au vent.
    Le drapeau ouvre la carte de candidature ; « En savoir plus » ouvre le dossier recrutement (tableau des départs, organigramme). */
@@ -1421,8 +1424,7 @@ i.cp-idee{background:var(--muted)}i.cp-redaction{background:var(--navy)}i.cp-pre
 
 <!-- ======================= CONNEXION / INSCRIPTION ======================= -->
 <div id="auth" class="auth" hidden>
-  <div class="pic"><a class="back" href="#accueil" style="color:var(--cream)" id="auth-back">← Retour au site</a><div><h2>Camp<br>de base</h2><p>L'espace des membres d'Alpinis'EM : objectifs de la semaine, calendrier, collecte, et le contenu du site public.</p></div></div>
-  <div class="card" id="auth-card"></div>
+  <div class="auth-in"><a class="back" href="#accueil" id="auth-back">← Retour au site</a><div class="card" id="auth-card"></div></div>
 </div>
 
 <!-- ======================= ESPACE MEMBRES ======================= -->
@@ -1532,7 +1534,7 @@ i.cp-idee{background:var(--muted)}i.cp-redaction{background:var(--navy)}i.cp-pre
 
     <!-- EQUIPE -->
     <section data-v="equipe" hidden>
-      <div class="top"><div><div class="eyebrow">Organisation</div><h1>Équipe</h1><p class="sub">Un Bureau de quatre pilote quatre pôles. Le Bureau valide les nouveaux comptes et attribue les rôles.</p></div></div>
+      <div class="top"><div><div class="eyebrow">Organisation</div><h1>Équipe</h1><p class="sub">Deux dirigeants pilotent l'asso et les pôles, avec un conseiller général, un responsable des fonds et des partenaires, et les chefs de cordée.</p></div></div>
       <div class="panel adm-link" style="margin-bottom:18px" data-w="admin" id="req-panel" hidden><div class="ph2" style="margin:0"><h2>Demandes d'accès et rôles</h2><button class="btn navy sm" type="button" data-goto="admin">Ouvrir Accès et rôles</button></div><div class="card-list" id="req-list" hidden></div></div>
       <div class="ph2"><h2>Bureau</h2></div>
       <div class="roles" id="roles"></div>
@@ -1972,7 +1974,7 @@ function ClaudeBackend(){
 
 /* ---------- Moteur 3 : démo locale (fichier ouvert hors ligne, rien n'est partagé) ---------- */
 function LocalBackend(){
-  const K='alpinisem-demo-v2';
+  const K='alpinisem-demo-v3';
   const B={mode:'local',user:null,canSignUp:true,canSignOut:true,canPassword:false};
   let D={},L={};
   const save=()=>{try{localStorage.setItem(K,JSON.stringify(D))}catch(e){}};
@@ -2048,7 +2050,7 @@ function demoSeed(){
   const sondages={sd1:{question:'Quel week-end pour la sortie de décembre ?',options:['6-7 décembre','13-14 décembre','Pas dispo'],fin:day(6),auteur:'u_m2'}};
   const votes={'sd1__u_m2':{uid:'u_m2',ref:'sd1',choix:[0]},'sd1__u_m6':{uid:'u_m6',ref:'sd1',choix:[1]},'sd1__u_m8':{uid:'u_m8',ref:'sd1',choix:[0]}};
   const depenses={de1:{uid:'u_m6',objet:'Impression des flyers',date:day(-3),montant:42.5,paye:'perso',statut:'soumise'}};
-  return{site:{main:{...DEF_SITE,raised}},expedition:{main:{grimpeurs:g,nbGrimpeurs:8,nbGuides:4}},entrainements,cycles,seances,guides,prospects,posts,reunions,sondages,votes,depenses,config:{main:{bureau:{ceo:'m1',cordee:'m2',cfo:'m3',coach:'m4'},leads:{com:'m5',part:'m7',event:'m9',treso:'m11'}}},
+  return{site:{main:{...DEF_SITE,raised}},expedition:{main:{grimpeurs:g,nbGrimpeurs:8,nbGuides:4}},entrainements,cycles,seances,guides,prospects,posts,reunions,sondages,votes,depenses,config:{main:{bureau:{dir_coach:'m4',dir_fin:'m3',conseil:'m1',fonds:'m7',cordee:['m2','m1']},leads:{com:'m5',part:'m7',event:'m9',treso:'m11'}}},
     objectifs,evenements,collecte,membres,decisions,ressources,actus:{},equipe:{},partenaires:{},
     profils,acces,inscriptions,urgences:{},
     messages:{x1:{nom:'Claire Dupont',email:'claire@example.com',type:'Entreprise intéressée par un partenariat',message:'Bonjour, notre magasin de sport aimerait vous équiper. On peut en parler ?',date:day(-1),lu:false}}};
@@ -3330,11 +3332,14 @@ const POLES=[
  {id:'event',nm:'Event',c:'var(--c-event)',d:'Soirées de collecte, sorties et randos.'},
  {id:'treso',nm:'Trésorerie',c:'var(--c-treso)',d:'Cotisations, notes de frais, comptes, cagnotte.'}];
 const P=id=>POLES.find(p=>p.id===id)||POLES[0];
+// Bureau : deux dirigeants qui pilotent l'asso et les pôles (l'un Head Coach, l'autre trésorerie et finance),
+// un conseiller général, un responsable des fonds et des partenaires, et plusieurs chefs de cordée
 const ROLES=[
- {id:'ceo',t:'Président·e & CEO',a:'Présidence',d:"Représente l'asso auprès de l'EM et des sponsors, anime le Bureau."},
- {id:'cordee',t:'Chef·fe de cordée',a:'Vice-présidence',d:'Expédition : guides, refuges, transports et sécurité en montagne.'},
- {id:'cfo',t:'CFO',a:'Finance & partenariats',d:'Budget, cagnotte, subventions et suivi des partenaires.'},
- {id:'coach',t:'Head Coach',a:'Préparation',d:'Programme sportif, entraînements collectifs, suivi des grimpeurs.'}];
+ {id:'dir_coach',t:'Dirigeant·e · Head Coach',a:'Direction',lead:1,d:"Co-dirige l'asso et les pôles. Porte aussi la préparation physique : plan d'entraînement, tests, sorties, suivi des grimpeurs."},
+ {id:'dir_fin',t:'Dirigeant·e · Trésorerie & finance',a:'Direction',lead:1,d:"Co-dirige l'asso et les pôles. Porte aussi le budget, les cotisations, les notes de frais et la part des grimpeurs."},
+ {id:'conseil',t:'Conseiller·ère général·e',a:'Conseil',d:"Conseille la direction, garde la vision d'ensemble et fait le lien entre les pôles."},
+ {id:'fonds',t:'Responsable des fonds & directeur·rice des partenaires',a:'Fonds & partenaires',d:"Pilote la collecte : partenaires, mécénat, subventions, et le suivi de ce qu'on leur a promis."},
+ {id:'cordee',t:'Chef·fe·s de cordée',a:'Expédition',multi:1,d:"Plusieurs personnes : guides, refuges, transports, matériel et sécurité en montagne."}];
 const ETYPES=[{id:'reunion',nm:'Réunion'},{id:'entrainement',nm:'Entraînement'},{id:'event',nm:'Événement'},{id:'expedition',nm:'Expédition'}];
 const CTYPES=[{id:'partenaire',nm:'Partenaires'},{id:'subvention',nm:'Subventions'},{id:'don',nm:'Dons'},{id:'event',nm:'Événements'},{id:'cotisation',nm:'Cotisations'}];
 const RUBRIQUES={obj:'Objectif Mont-Blanc',actu:"Mont'actu",eco:'Eco time',after:'Aftermovie'};
@@ -3570,6 +3575,7 @@ function frErr(err){const m=String(err&&err.message||err);
   if(/Password should be|weak/i.test(m))return'Mot de passe trop court ou trop simple : 10 caractères minimum.';
   if(/Invalid TOTP|invalid.*code|expired/i.test(m))return'Code incorrect ou expiré : réessaie avec le code affiché maintenant.';
   if(/rate limit/i.test(m))return'Trop de tentatives, réessaie dans quelques minutes.';
+  if(/sending.*(confirmation|recovery|email)|smtp/i.test(m))return'Ton compte est créé, mais l\'e-mail de confirmation n\'a pas pu partir. Réessaie dans quelques minutes, ou écris au Bureau.';
   return m}
 
 /* ================= Espace membres ================= */
@@ -3704,7 +3710,7 @@ function renderDash(){
     const unread=S.messages.filter(m=>!m.lu);if(unread.length)al.push(['i',`${unread.length} message${unread.length>1?'s':''} du site à lire`,unread.slice(0,2).map(m=>esc(m.nom)).join(', '),'messages']);
     const noFiche=isAdmin()&&mfaOk()?S.membres.filter(m=>m.uid&&!S.urgences.some(u=>u.id===m.uid)):[];if(noFiche.length)al.push(['w',`${noFiche.length} fiche${noFiche.length>1?'s':''} d'urgence à remplir`,noFiche.slice(0,4).map(m=>esc(m.nom)).join(', '),'equipe'])}
   late.slice(0,4).forEach(o=>al.push(['',esc(o.titre),`${esc(P(o.pole).nm)} · échéance ${short(o.echeance)}${o.resp&&memberById(o.resp)?' · '+esc(memberById(o.resp).nom):''}`,'semaine']));
-  const freeRoles=ROLES.filter(r=>!memberById(S.cfg.bureau?.[r.id]));
+  const freeRoles=ROLES.filter(r=>{const v=S.cfg.bureau?.[r.id];return r.multi?!(Array.isArray(v)&&v.some(memberById)):!memberById(v)});
   if(freeRoles.length)al.push(['w',`${freeRoles.length} rôle${freeRoles.length>1?'s':''} du Bureau à attribuer`,freeRoles.map(r=>r.t).join(', '),'equipe']);
   const todec=S.decisions.filter(d=>d.statut==='atrancher');
   if(todec.length)al.push(['i',`${todec.length} décision${todec.length>1?'s':''} à trancher`,todec.slice(0,2).map(d=>esc(d.titre)).join(' · '),'decisions']);
@@ -3825,7 +3831,10 @@ $('#cfg-form').addEventListener('submit',async e=>{e.preventDefault();
 function memberOptions(sel,blank='À attribuer'){return `<option value="">${blank}</option>`+S.membres.slice().sort((a,b)=>a.nom.localeCompare(b.nom)).map(m=>`<option value="${m.id}" ${m.id===sel?'selected':''}>${esc(m.nom)}</option>`).join('')}
 function renderTeam(){
   const bw=isBureau();
-  $('#roles').innerHTML=ROLES.map((r,i)=>{const h=S.cfg.bureau?.[r.id]||'';return `<div class="role ${i===0?'lead':''}"><span class="alias">${esc(r.a)}</span><h3>${esc(r.t)}</h3><p>${esc(r.d)}</p>
+  $('#roles').innerHTML=ROLES.map(r=>{const h=S.cfg.bureau?.[r.id]||'';
+    if(r.multi){const ms=(Array.isArray(h)?h:h?[h]:[]).map(memberById).filter(Boolean);
+      return `<div class="role"><span class="alias">${esc(r.a)}</span><h3>${esc(r.t)}</h3><p>${esc(r.d)}</p><b style="font-size:14px">${ms.length?ms.map(m=>esc(m.nom)).join(', '):'À attribuer'}</b>${bw?`<button class="btn ghost sm" type="button" data-m="role-multi" data-role="${r.id}" style="justify-self:start">Choisir les personnes</button>`:''}</div>`}
+    return `<div class="role ${r.lead?'lead':''}"><span class="alias">${esc(r.a)}</span><h3>${esc(r.t)}</h3><p>${esc(r.d)}</p>
     ${bw?`<label class="f">Qui<select data-role="${r.id}">${memberOptions(h)}</select></label>`:`<b style="font-size:14px">${esc(memberById(h)?.nom||'À attribuer')}</b>`}</div>`}).join('');
   $('#poles').innerHTML=POLES.filter(p=>p.id!=='bureau').map(p=>{const ms=S.membres.filter(m=>m.pole===p.id),l=S.cfg.leads?.[p.id]||'';
     return `<div class="pole" style="--c:${p.c}"><h3>${esc(p.nm)}</h3><p>${esc(p.d)}</p>${bw?`<label class="f">Responsable de pôle<select data-lead="${p.id}">${memberOptions(l)}</select></label>`:`<p><b style="color:var(--ink)">Resp. : ${esc(memberById(l)?.nom||'à attribuer')}</b></p>`}
@@ -4956,6 +4965,11 @@ ACT['arc-csv']=()=>{const rows=[['Type','Date','Libellé','Personne','Montant (�
   S.depenses.forEach(d=>rows.push(['Dépense',d.date,d.objet,uName(d.uid),-(+d.montant||0),DSTAT[d.statut||'soumise'][0]]));
   S.paiements.forEach(p=>rows.push([p.type==='cotisation'?'Cotisation':'Part grimpeur',p.date,p.ref||p.mode||'',uName(p.uid),p.montant,'reçu']));
   download(`alpinisem-comptes-${today()}.csv`,'﻿'+rows.map(csvLine).join('\n'),'text/csv');toast('Comptes exportés')};
+
+/* ---------- Équipe : rôle tenu par plusieurs personnes (chefs de cordée) ---------- */
+ACT['role-multi']=b=>{const r=ROLES.find(x=>x.id===b.dataset.role);if(!r)return;const cur=S.cfg.bureau?.[r.id];
+  openEd({title:r.t,fields:[{k:'ids',l:'Qui tient ce rôle',t:'persons',opts:()=>S.membres.slice().sort((a,c)=>a.nom.localeCompare(c.nom)).map(m=>[m.id,m.nom])}],data:{ids:Array.isArray(cur)?cur:cur?[cur]:[]},
+    save:v=>saveCfg({bureau:{...(S.cfg.bureau||{}),[r.id]:v.ids}}),ok:'Rôle attribué'})};
 
 /* ================= Finances ================= */
 /* ---------- Budget prévisionnel ---------- */
