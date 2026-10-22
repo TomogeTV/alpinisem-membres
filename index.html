@@ -1668,6 +1668,14 @@ i.cp-idee{background:var(--muted)}i.cp-redaction{background:var(--navy)}i.cp-pre
               <dt>Admin</dt><dd>Comme le Bureau, et gère les accès, les rôles, le journal et les fiches d'urgence. Double authentification obligatoire.</dd>
             </dl></div>
         </div>
+        <!-- [Ajout Benjamin · 2026-10-22] Encart Contributions — bloc isolé, supprimable -->
+        <div class="panel" style="margin-top:14px"><div class="ph2"><h2>Contributions de Benjamin</h2><span class="muted">Détail dans CONTRIBUTIONS.md</span></div>
+          <dl class="kv">
+            <dt>21/10/2026</dt><dd>Gestion de projet GitHub : labels par pôle, 5 jalons, 9 issues, formulaires Contact guide / partenaire / tâche, récap des relances chaque lundi (.github/). Aucun changement du site.</dd>
+            <dt>22/10/2026</dt><dd>Guides et pistes : ajout du comparatif des devis 2024 / 2027 (bloc « Ajout Benjamin » dans le script, à côté de MV.guides).</dd>
+            <dt>22/10/2026</dt><dd>Administration : ajout de cet encart. Une issue GitHub par guide contacté, relance au 29/10.</dd>
+          </dl></div>
+        <!-- fin ajout Benjamin -->
       </div>
     </section>
 
@@ -4704,6 +4712,15 @@ MV.guides={render(box,ta){
     ${S.guides.length?`<div class="kb">${Object.entries(GSTAT).map(([k,v])=>{const l=S.guides.filter(z=>(z.statut||'piste')===k).sort((a,b)=>String(a.relance||'9').localeCompare(String(b.relance||'9')));return `<div class="kcol"><div class="kh"><span class="pill ${v[1]}">${v[0]}</span><span class="m">${l.length}</span></div>${l.map(card).join('')||'<div class="kc-e">—</div>'}</div>`}).join('')}</div>`
     :`<div class="panel">${empty('Pas encore de piste','Note ici toutes les pistes : un guide recommandé, une compagnie de la vallée, un contact d\'ancien. Chaque piste avance de « Piste » à « Retenu ».',isMember()?mbtn('guide-new','+ Ajouter une piste','navy')+(isBureau()?' '+mbtn('guide-sugg','Ajouter des pistes de départ'):''):'')}</div>`}
     <div class="panel soft" style="margin-top:14px"><div class="ph2"><h2>Bon à savoir</h2></div><ul class="tips"><li>Sur la voie normale du Goûter, les guides partent en général avec deux clients chacun : ${x.nbGrimpeurs} grimpeurs, ${x.nbGuides} guides.</li><li>Demande des devis comparables : nombre de jours, acclimatation comprise ou non, nuits en refuge, frais du guide, conditions d'annulation météo.</li><li>Les guides demandent souvent une course de préparation avant le sommet : prévois-la dans le programme.</li></ul></div>`}};
+/* ---------- [Ajout Benjamin · 2026-10-22] Comparatif des devis 2024 / 2027 — bloc isolé, supprimable ---------- */
+const DEVIS_CMP=[
+  ['Odyssée Montagne','5 j (2 j de prépa)','à compléter','2 740 € (6 pers.) · 2 640 € (8 pers.)','Refuges, 1 guide pour 2 au sommet, matériel collectif, remontées. Hors transport, +20 € d\'inscription, acompte 45 %.'],
+  ['Odyssée Montagne','6 j (3 j de prépa)','à compléter','3 095 € (6 pers.) · 2 940 € (8 pers.)','Idem. Groupes de 4 : à 6, un guide de plus facturé.'],
+  ['Compagnie des guides de Chamonix','Formule Duo 5 j','à compléter (−10 % en 2024)','Tarif du site, sans remise','Dispo à partir du 28 juin. 2 jours d\'alpinisme avec crampons déjà faits exigés. Refuges non garantis.'],
+  ['Montagnevasion (Serge Bazin)','5 / 6 j, plusieurs sommets','à compléter','en attente','Demande qu\'on lui renvoie son devis 2024 pour l\'actualiser.']];
+{const r0=MV.guides.render;MV.guides.render=function(box,ta){r0.call(this,box,ta);
+  box.insertAdjacentHTML('beforeend',`<div class="panel" style="margin-top:14px"><div class="ph2"><h2>Comparatif des devis 2024 / 2027</h2><span class="muted">Prix par personne · mis à jour le 22/10/2026</span></div><div class="tbl"><table><thead><tr><th>Guide</th><th>Formule</th><th>Prix 2024</th><th>Prix 2027</th><th>À retenir</th></tr></thead><tbody>${DEVIS_CMP.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="muted" style="margin-top:8px">Sans réponse au 22/10 : Guides Mont-Blanc, Antoine Thellier, Climb Mont Blanc, Y. Astier-Perret, Kazaden, Ski Tour Guide, Benoît Mariani, contact.guide.montagne.</p></div>`)}}
+/* ---------- fin ajout Benjamin ---------- */
 ACT['guide-new']=()=>edGuide(null);ACT['guide-ed']=(b,id)=>edGuide(S.guides.find(z=>z.id===id));
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('.kc[data-m]'))e.target.click()});
 ACT['guide-sugg']=async b=>{b.disabled=true;for(const n of ['Compagnie des guides de Saint-Gervais','Compagnie des guides de Chamonix','Annuaire du Syndicat national des guides de montagne'])await B.add('guides',{nom:n,type:n.startsWith('Annuaire')?'autre':'compagnie',statut:'piste',source:'Piste de départ',notes:'Coordonnées à vérifier sur leur site.',resp:''});toast('Pistes ajoutées')};
