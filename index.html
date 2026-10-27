@@ -1673,6 +1673,7 @@ i.cp-idee{background:var(--muted)}i.cp-redaction{background:var(--navy)}i.cp-pre
           <dl class="kv">
             <dt>21/10/2026</dt><dd>Gestion de projet GitHub : labels par pôle, 5 jalons, 9 issues, formulaires Contact guide / partenaire / tâche, récap des relances chaque lundi (.github/). Aucun changement du site.</dd>
             <dt>22/10/2026</dt><dd>Guides et pistes : comparatif des devis 2024 / 2027 (prix 2024 du Drive) et mention « ajouté par / modifié par » sur chaque piste (bloc « Ajout Benjamin » dans le script, à côté de MV.guides).</dd>
+            <dt>27/10/2026</dt><dd>Gestion de projet (planning, jalons, tâches GitHub par pôle), page de chaque pôle, cartes des pôles cliquables sur le tableau de bord. Un membre ne voit que son pôle ; le Bureau et les admins voient tout.</dd>
             <dt>22/10/2026</dt><dd>Administration : ajout de cet encart. Une issue GitHub par guide contacté, relance au 29/10.</dd>
           </dl></div>
         <!-- fin ajout Benjamin -->
@@ -4116,6 +4117,10 @@ const VDEF=[
   ['sondages','org','Sondages','Organisation',"Une question, des options, chacun vote. Pratique pour fixer une date ou choisir un sweat.",'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],
   ['accueil','org','Bienvenue','Organisation',"Les premiers pas de chaque nouveau membre dans l'asso, à cocher au fur et à mesure.",'<path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>'],
   ['archives','org','Passation','Organisation',"Les notes de passation de chaque pôle pour la promo suivante, et l'export complet de la saison.",'<rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9M10 13h4"/>']];
+/* [Ajout Benjamin · 2026-10-27] vues Gestion de projet et Pôle — bloc isolé */
+VDEF.push(['projet','pilot','Gestion de projet','Pilotage',"Le planning jusqu'à l'été 2027 : les jalons, et toutes les tâches de chaque pôle. Les tâches viennent du suivi GitHub de l'asso.",'<path d="M4 6h16M4 12h10M4 18h6"/><circle cx="18" cy="16" r="3"/>'],
+  ['pole','pilot','Pôle','Pilotage',"Ce qu'il y a à faire dans ce pôle.",'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>']);
+/* fin ajout Benjamin */
 VDEF.forEach(d=>{VIEWS.push(d[0])});
 
 // la navigation : regroupée par grands chantiers
@@ -4136,6 +4141,7 @@ const NAV=[
   ['Site public · Bureau','bureau',[['site','Contenu du site'],['messages','Messages','nav-msg']]],
   ['Administration','admin',[['admin','Accès et rôles','nav-adm']]],
   ['Moi','',[['compte','Mon compte']]]];
+/* [Ajout Benjamin] */ NAV[0][2].splice(1,0,['projet','Gestion de projet']);
 const VLABEL={};NAV.forEach(g=>g[2].forEach(i=>VLABEL[i[0]]=i[1]));
 {const side=$('.side'),old=$$('.side>.grp');
   const html=NAV.map(g=>`<div class="grp"${g[1]?` data-need="${g[1]}"`:''}${g[1]==='admin'?' hidden':''}><div class="eyebrow">${esc(g[0])}</div>${g[2].map(i=>`<button class="navbtn" data-view="${i[0]}"><svg viewBox="0 0 24 24">${ICO[i[0]]||''}</svg>${esc(i[1])}${i[2]?`<span class="count" id="${i[2]}" hidden></span>`:''}</button>`).join('')}</div>`).join('');
@@ -4733,6 +4739,55 @@ const DEVIS_CMP=[
 {const b0=GUIDE_DEF.before;GUIDE_DEF.before=async(v,d)=>{v=(b0&&await b0(v,d))||v;const me=myId(),t=today();
   return {...v,ajoutePar:(d&&d.ajoutePar)||me,ajouteLe:(d&&d.ajouteLe)||t,modifiePar:me,modifieLe:t}}}
 /* ---------- fin ajout Benjamin ---------- */
+/* ---------- [Ajout Benjamin · 2026-10-27] Gestion de projet, pôles cliquables, accès par pôle — bloc isolé, supprimable ----------
+   Source des tâches et jalons : issues GitHub du repo (public), lues en direct, cache 5 min.
+   Le Bureau et les admins (président, vice-président…) voient tous les pôles ; les autres membres voient leur pôle. */
+const GH_REPO='TomogeTV/alpinisem-membres';
+const GH_POLE={bureau:'bureau','terrain-guides':'bureau',com:'com',partenaires:'part',evenement:'event',tresorerie:'treso'};
+const GH={issues:null,miles:null,err:null,loading:false,at:0};
+async function ghLoad(force){
+  if(GH.loading||(!force&&GH.issues&&Date.now()-GH.at<300000))return;GH.loading=true;
+  try{const get=async u=>{const r=await fetch('https://api.github.com/repos/'+GH_REPO+u,{headers:{Accept:'application/vnd.github+json'}});if(!r.ok)throw new Error('GitHub '+r.status);return r.json()};
+    const [is,ms]=await Promise.all([get('/issues?state=all&per_page=100'),get('/milestones?state=all&sort=due_on&direction=asc')]);
+    GH.issues=is.filter(i=>!i.pull_request);GH.miles=ms;GH.err=null;GH.at=Date.now()}
+  catch(e){GH.err=e.message||'erreur'}finally{GH.loading=false;if(['projet','pole','dash'].includes(view))renderPlus()}}
+const ghPoles=i=>[...new Set(i.labels.map(l=>GH_POLE[l.name]).filter(Boolean))];
+const ghPrio=i=>{const l=i.labels.find(l=>l.name.startsWith('priorité:'));return l?l.name.slice(9):''};
+const canSeePole=id=>isBureau()||myPole()===id;
+let curPole=null;try{curPole=sessionStorage.getItem('alp-pole')}catch(e){}
+const openPole=id=>{curPole=id;try{sessionStorage.setItem('alp-pole',id)}catch(e){}location.hash='#espace/pole';window.scrollTo(0,0)};
+ACT['pole-open']=(b,id)=>openPole(b.dataset.pole||id);
+ACT['gh-refresh']=()=>ghLoad(true);ACT['pole-sel']=b=>openPole(b.value);
+const ghRow=i=>{const pr=ghPrio(i),ms=i.milestone,done=i.state==='closed';
+  return `<a class="prow" href="${esc(i.html_url)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;${done?'opacity:.55':''}"><span class="nm">${done?'✓ ':''}${esc(i.title)}</span><span class="m">${pr?`<span class="pill ${pr==='haute'?'bad':pr==='moyenne'?'warn':'mute'}">${esc(pr)}</span> `:''}${ms?esc(ms.title)+(ms.due_on?' · '+esc(short(ms.due_on.slice(0,10))):''):''}</span></a>`};
+const ghState=()=>GH.err?`<div class="panel">${empty('Tâches indisponibles','Le suivi GitHub ne répond pas ('+esc(GH.err)+'). Réessaie dans un moment.',mbtn('gh-refresh','Réessayer'))}</div>`:!GH.issues?`<div class="panel">${empty('Chargement des tâches…','')}</div>`:'';
+const poleCards=()=>`<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px">${POLES.map(p=>{const ok=canSeePole(p.id),is=(GH.issues||[]).filter(i=>ghPoles(i).includes(p.id)),open=is.filter(i=>i.state==='open').length,obj=S.objectifs.filter(o=>o.pole===p.id&&o.statut!=='done').length;
+  return `<div class="panel kc" ${ok?`data-m="pole-open" data-pole="${p.id}" role="button" tabindex="0" style="cursor:pointer;border-top:4px solid ${p.c}"`:`style="opacity:.5;border-top:4px solid ${p.c}" title="Réservé au pôle ${esc(p.nm)} et au Bureau"`}><b>${esc(p.nm)}</b><small style="display:block;margin:4px 0 8px">${esc(p.d)}</small><span class="m">${ok?`${open} tâche${open>1?'s':''} · ${obj} objectif${obj>1?'s':''} en cours`:'🔒 accès réservé'}</span></div>`}).join('')}</div>`;
+MV.projet={render(box,ta){ghLoad();ta.innerHTML=mbtn('gh-refresh','Actualiser')+' <a class="btn ghost sm" href="https://github.com/'+GH_REPO+'/issues" target="_blank" rel="noopener">Ouvrir sur GitHub</a>';
+  if(!GH.issues){box.innerHTML=ghState();return}
+  const t=today(),vis=GH.issues.filter(i=>{const ps=ghPoles(i);return isBureau()||!ps.length||ps.some(canSeePole)});
+  const miles=(GH.miles||[]).map(m=>{const is=vis.filter(i=>i.milestone&&i.milestone.number===m.number),d=is.filter(i=>i.state==='closed').length,due=m.due_on?m.due_on.slice(0,10):'';
+    return `<div class="prow"><span class="nm"><b>${esc(m.title)}</b><small style="display:block" class="${due&&due<t&&d<is.length?'bad-t':''}">${due?'avant le '+esc(short(due)):'sans date'}</small></span><div class="track"><i style="width:${is.length?d/is.length*100:0}%"></i></div><span class="pct">${d}/${is.length}</span></div>`}).join('');
+  box.innerHTML=`<div class="panel" style="margin-bottom:14px"><div class="ph2"><h2>Planning · jalons</h2><span class="muted">${esc(EXP().dates||'Ascension : 23 juin – 3 juillet 2027, ou à partir du 12 juillet')}</span></div><div class="dl">${miles||'<div class="kc-e">Aucun jalon</div>'}</div></div>
+   <div class="panel" style="margin-bottom:14px"><div class="ph2"><h2>Les pôles</h2>${isBureau()?'<span class="muted">tu vois tous les pôles</span>':''}</div>${poleCards()}</div>
+   <div class="grid two">${POLES.filter(p=>canSeePole(p.id)).map(p=>{const is=vis.filter(i=>ghPoles(i).includes(p.id)&&i.state==='open');
+     return `<div class="panel"><div class="ph2"><h2><i class="sw" style="background:${p.c}"></i> ${esc(p.nm)}</h2><button class="btn ghost sm" type="button" data-m="pole-open" data-pole="${p.id}">Ouvrir</button></div><div class="dl">${is.map(ghRow).join('')||'<div class="kc-e">Rien à faire</div>'}</div></div>`}).join('')}</div>`}};
+MV.pole={render(box,ta){ghLoad();const p=POLES.find(x=>x.id===curPole)||P(myPole());
+  if(!canSeePole(p.id)){box.innerHTML=`<div class="panel">${empty('Accès réservé','Seuls les membres du pôle '+esc(p.nm)+' et le Bureau voient ce pôle.','')}</div>`;return}
+  const sec=$('section[data-v="pole"]');if(sec){const h=sec.querySelector('h1'),s=sec.querySelector('.sub');if(h)h.textContent='Pôle '+p.nm;if(s)s.textContent=p.d}
+  ta.innerHTML=(isBureau()?`<select aria-label="Changer de pôle" data-mc="pole-sel">${POLES.map(x=>`<option value="${x.id}" ${x.id===p.id?'selected':''}>${esc(x.nm)}</option>`).join('')}</select> `:'')+mbtn('gh-refresh','Actualiser');
+  const is=(GH.issues||[]).filter(i=>ghPoles(i).includes(p.id)),open=is.filter(i=>i.state==='open'),done=is.filter(i=>i.state==='closed'),t=today();
+  const obj=S.objectifs.filter(o=>o.pole===p.id&&o.statut!=='done').sort((a,b)=>String(a.echeance||'9').localeCompare(String(b.echeance||'9')));
+  box.innerHTML=`<div class="grid two"><div class="panel"><div class="ph2"><h2>À faire</h2><span class="muted">${open.length} tâche${open.length>1?'s':''}</span></div>${GH.issues?`<div class="dl">${open.map(ghRow).join('')||'<div class="kc-e">Rien à faire 🎉</div>'}</div>`:ghState()}</div>
+    <div class="panel"><div class="ph2"><h2>Objectifs de la semaine</h2><span class="muted">${obj.length}</span></div><div class="dl">${obj.map(o=>`<div class="prow"><span class="nm">${esc(o.titre||o.nom||'Objectif')}</span><span class="m ${o.echeance&&o.echeance<t?'bad-t':''}">${o.echeance?esc(short(o.echeance)):''}</span></div>`).join('')||'<div class="kc-e">Aucun objectif en cours</div>'}</div></div></div>
+    ${done.length?`<div class="panel" style="margin-top:14px"><div class="ph2"><h2>Fait</h2><span class="muted">${done.length}</span></div><div class="dl">${done.map(ghRow).join('')}</div></div>`:''}`}};
+// accueil : les pôles en cartes cliquables, et les lignes « Avancement des pôles » ouvrent le pôle
+{const d0=dashPlus;dashPlus=function(){d0();ghLoad();const host=$('#pole-rows');if(!host)return;
+  host.querySelectorAll('.prow').forEach((r,k)=>{const p=POLES[k];if(!p)return;if(canSeePole(p.id)){r.style.cursor='pointer';r.dataset.m='pole-open';r.dataset.pole=p.id;r.setAttribute('role','button')}else r.style.opacity='.5'});
+  let w=$('#alp-poles');if(!w){w=document.createElement('div');w.id='alp-poles';w.className='panel';w.style.marginTop='14px';host.closest('.grid').after(w)}
+  w.innerHTML=`<div class="ph2"><h2>Les pôles</h2><button class="btn ghost sm" type="button" data-goto="projet">Gestion de projet</button></div>${poleCards()}`}}
+/* ---------- fin ajout Benjamin (gestion de projet) ---------- */
+
 ACT['guide-new']=()=>edGuide(null);ACT['guide-ed']=(b,id)=>edGuide(S.guides.find(z=>z.id===id));
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('.kc[data-m]'))e.target.click()});
 ACT['guide-sugg']=async b=>{b.disabled=true;for(const n of ['Compagnie des guides de Saint-Gervais','Compagnie des guides de Chamonix','Annuaire du Syndicat national des guides de montagne'])await B.add('guides',{nom:n,type:n.startsWith('Annuaire')?'autre':'compagnie',statut:'piste',source:'Piste de départ',notes:'Coordonnées à vérifier sur leur site.',resp:''});toast('Pistes ajoutées')};
