@@ -4730,7 +4730,15 @@ const DEVIS_CMP=[
   ['Y. Astier-Perret (Val d\'Isère)','6 j','2 490 €','pas de réponse','—','Plusieurs sommets pour s\'acclimater.'],
   ['Antoine Thellier','5 j (2 j prépa + 3 j Mont-Blanc)','≈ 1 250 € (10 000 € pour 8, guides réduits en prépa)','2 054 € (guide seul, 1 guide pour 2 tout le stage)','non comparable','Hors refuges et remontées : estimation « tout compris » dans la note de son devis PDF.'],
   ['Benoît Mariani (Loriaz Guiding)','2 stages de 3 j + Mont-Blanc','≈ 1 060 – 1 185 € (8 480 – 9 480 € pour 8)','devis promis cette semaine','—','Partant, même formule qu\'en 2024. Un autre engagement sur la période mais « ça devrait jouer ».']];
+// mails de guides en attente de notre réponse (mis à jour à la main)
+const A_REPONDRE=[
+  ['Cie des guides de Saint-Gervais','23/10','Ils demandent si on peut décaler à la 1re semaine de juillet et notre date max. Leur donner : 23 juin – 3 juillet, ou à partir du 12 juillet.'],
+  ['Climb Mont Blanc (Anja)','28/10','Devis 3 295 €/pers. reçu. Elle demande si nos dates sont flexibles (dates fixées en décembre). Répondre en anglais avec nos créneaux.'],
+  ['Antoine Thellier','28/10','Devis 2 054 €/pers. (guide seul) reçu. Le remercier et dire si sa proposition nous intéresse.'],
+  ['Odyssée Montagne','22/10','Devis reçu. Confirmer notre intérêt, poser nos questions, et cliquer sur le lien Mailinblack pour que nos mails passent.'],
+  ['Compagnie des guides de Chamonix','22/10','Seulement si on la garde : expliquer notre niveau (2 jours avec crampons exigés), dispo à partir du 28 juin.']];
 {const r0=MV.guides.render;MV.guides.render=function(box,ta){r0.call(this,box,ta);
+  box.insertAdjacentHTML('beforeend',`<div class="panel" style="margin-top:14px;border-left:4px solid var(--bad)"><div class="ph2"><h2>✉️ À répondre</h2><span class="muted">${A_REPONDRE.length} mail${A_REPONDRE.length>1?'s':''} · mis à jour le 28/10/2026</span></div><div class="dl">${A_REPONDRE.map(([n,d,x])=>`<div class="prow" style="align-items:flex-start"><span class="nm"><b>${esc(n)}</b><small style="display:block">reçu le ${esc(d)}</small></span><span class="m" style="flex:2">${esc(x)}</span></div>`).join('')}</div></div>`);
   // « ajouté par » sur chaque carte (pistes créées ou modifiées après le 22/10/2026)
   box.querySelectorAll('.kc[data-id]').forEach(c=>{const z=S.guides.find(q=>q.id===c.dataset.id);if(!z||!z.ajoutePar)return;
     c.insertAdjacentHTML('beforeend',`<small class="m" style="display:block;margin-top:6px">Ajouté par ${esc(uName(z.ajoutePar))}${z.ajouteLe?' le '+esc(short(z.ajouteLe)):''}${z.modifiePar&&(z.modifiePar!==z.ajoutePar||z.modifieLe!==z.ajouteLe)?` · modifié par ${esc(uName(z.modifiePar))}${z.modifieLe?' le '+esc(short(z.modifieLe)):''}`:''}</small>`)});
