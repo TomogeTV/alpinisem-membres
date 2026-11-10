@@ -4120,6 +4120,7 @@ const VDEF=[
 /* [Ajout Benjamin · 2026-10-27] vues Gestion de projet et Pôle — bloc isolé */
 VDEF.push(['projet','pilot','Gestion de projet','Pilotage',"Le planning jusqu'à l'été 2027 : les jalons, et toutes les tâches de chaque pôle. Les tâches viennent du suivi GitHub de l'asso.",'<path d="M4 6h16M4 12h10M4 18h6"/><circle cx="18" cy="16" r="3"/>'],
   ['pole','pilot','Pôle','Pilotage',"Ce qu'il y a à faire dans ce pôle.",'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>']);
+/* [Ajout Benjamin · 2026-11-10] */ VDEF.push(['audience','pilot','Audience du site','Direction',"Combien de personnes viennent sur alpinisem.com, où elles cliquent, et à quelles dates et heures.",'<path d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7z"/><circle cx="12" cy="12" r="3"/>']);
 /* fin ajout Benjamin */
 VDEF.forEach(d=>{VIEWS.push(d[0])});
 
@@ -4141,7 +4142,7 @@ const NAV=[
   ['Site public · Bureau','bureau',[['site','Contenu du site'],['messages','Messages','nav-msg']]],
   ['Administration','admin',[['admin','Accès et rôles','nav-adm']]],
   ['Moi','',[['compte','Mon compte']]]];
-/* [Ajout Benjamin] */ NAV[0][2].splice(1,0,['projet','Gestion de projet']);
+/* [Ajout Benjamin] */ NAV[0][2].splice(1,0,['projet','Gestion de projet']); NAV[0][2].push(['audience','Audience du site']);
 const VLABEL={};NAV.forEach(g=>g[2].forEach(i=>VLABEL[i[0]]=i[1]));
 {const side=$('.side'),old=$$('.side>.grp');
   const html=NAV.map(g=>`<div class="grp"${g[1]?` data-need="${g[1]}"`:''}${g[1]==='admin'?' hidden':''}><div class="eyebrow">${esc(g[0])}</div>${g[2].map(i=>`<button class="navbtn" data-view="${i[0]}"><svg viewBox="0 0 24 24">${ICO[i[0]]||''}</svg>${esc(i[1])}${i[2]?`<span class="count" id="${i[2]}" hidden></span>`:''}</button>`).join('')}</div>`).join('');
@@ -4795,6 +4796,51 @@ MV.pole={render(box,ta){ghLoad();const p=POLES.find(x=>x.id===curPole)||P(myPole
   let w=$('#alp-poles');if(!w){w=document.createElement('div');w.id='alp-poles';w.className='panel';w.style.marginTop='14px';host.closest('.grid').after(w)}
   w.innerHTML=`<div class="ph2"><h2>Les pôles</h2><button class="btn ghost sm" type="button" data-goto="projet">Gestion de projet</button></div>${poleCards()}`}}
 /* ---------- fin ajout Benjamin (gestion de projet) ---------- */
+/* ---------- [Ajout Benjamin · 2026-11-10] Audience : vues et carte de chaleur des clics — bloc isolé, supprimable ----------
+   Pour l'instant ouvert à tous les comptes connectés : la base vérifie l'accès (analytics_can_view / analytics_stats). */
+const AN={can:null,data:null,days:30,dev:'d',err:null,loading:false};
+const anDemo=()=>{const rnd=(a=>()=>(a=(a*16807)%2147483647)/2147483647)(42),days=[],t=new Date(),secs=['accueil','projet','contact'];
+  for(let i=29;i>=0;i--){const d=new Date(t-864e5*i),v=Math.round(40+rnd()*90);days.push({d:d.toISOString().slice(0,10),views:v,visits:Math.round(v*.7)})}
+  const clicks=[];for(let i=0;i<900;i++){const hot=rnd()<.6;clicks.push({s:hot?'accueil':secs[1+Math.floor(rnd()*2)],fx:hot?(rnd()<.6?.13:.26)+rnd()*.05:rnd(),fy:hot?.72+rnd()*.06:rnd(),dev:rnd()<.65?'d':'m'})}
+  const hours=Array.from({length:24},(_,h)=>({h,n:Math.round((h>7?30:4)+rnd()*(h>17?120:60))})),recent=Array.from({length:40},(_,i)=>({at:new Date(Date.now()-i*47*6e4).toISOString(),page:['accueil','rejoindre','ascension'][Math.floor(rnd()*3)],dev:rnd()<.6?'d':'m'}));
+  return{hours,recent,views:days.reduce((a,x)=>a+x.views,0),visits:days.reduce((a,x)=>a+x.visits,0),days,pages:[{page:'accueil',n:1890},{page:'rejoindre',n:412},{page:'ascension',n:306}],targets:[{t:'Candidater',n:318},{t:'Découvrir en 3D',n:241},{t:'Espace membres',n:96},{t:'@alpinisem',n:44}],clicks}};
+async function anCheck(){if(AN.can!==null||!B.user)return;
+  if(B.mode==='local'){AN.can=true}else if(B.sb){const r=await B.sb.rpc('analytics_can_view');AN.can=!r.error&&r.data===true}else AN.can=false;
+  if(view==='audience'||AN.can)renderPlus()}
+async function anLoad(force){if(AN.loading||(AN.data&&AN.data._d===AN.days&&!force))return;AN.loading=true;
+  try{let d;if(B.mode==='local'){d=anDemo()}else{const r=await B.sb.rpc('analytics_stats',{p_days:AN.days});if(r.error)throw new Error(r.error.message);d=r.data||{}}
+    d._d=AN.days;AN.data=d;AN.err=null}catch(e){AN.err=e.message||'erreur'}finally{AN.loading=false;if(view==='audience')renderPlus()}}
+ACT['an-days']=b=>{AN.days=+b.dataset.days;AN.data=null;renderPlus()};
+ACT['an-dev']=b=>{AN.dev=b.dataset.dev;renderPlus()};
+ACT['an-refresh']=()=>anLoad(true);
+function anHeat(fr){const doc=fr.contentDocument;if(!doc||!doc.body||!AN.data)return;let c=doc.getElementById('an-heat');
+  if(!c){c=doc.createElement('canvas');c.id='an-heat';c.style.cssText='position:absolute;left:0;top:0;pointer-events:none;z-index:99999;mix-blend-mode:normal';doc.body.appendChild(c);if(getComputedStyle(doc.body).position==='static')doc.body.style.position='relative'}
+  const hc=doc.querySelector('#accueil .ctas');if(hc)hc.innerHTML='<a class="btn ghost">Découvrir en 3D</a><a class="btn red">Candidater</a>'; // comme sur alpinisem.com
+  const W=doc.documentElement.scrollWidth,H=doc.documentElement.scrollHeight;c.width=W;c.height=H;c.style.width=W+'px';c.style.height=H+'px';
+  const g=c.getContext('2d'),sy=fr.contentWindow.scrollY,R=AN.dev==='d'?46:30;
+  (AN.data.clicks||[]).filter(k=>k.dev===AN.dev).forEach(k=>{const el=doc.getElementById(k.s);if(!el)return;const r=el.getBoundingClientRect(),x=r.left+k.fx*r.width,y=r.top+sy+k.fy*r.height,p=g.createRadialGradient(x,y,0,x,y,R);p.addColorStop(0,'rgba(255,40,30,.28)');p.addColorStop(.5,'rgba(255,170,0,.1)');p.addColorStop(1,'rgba(255,200,0,0)');g.fillStyle=p;g.fillRect(x-R,y-R,R*2,R*2)})}
+MV.audience={render(box,ta){
+  if(AN.can===null){box.innerHTML=`<div class="panel">${empty('Vérification de l\'accès…','')}</div>`;anCheck();return}
+  if(!AN.can){box.innerHTML=`<div class="panel">${empty('Accès réservé','Cette page est réservée aux membres connectés.','')}</div>`;return}
+  anLoad();const btn=(act,attr,v,l,cur)=>`<button class="btn ${cur?'navy':'ghost'} sm" type="button" data-m="${act}" data-${attr}="${v}">${l}</button>`;
+  ta.innerHTML=[7,30,90].map(n=>btn('an-days','days',n,n+' jours',AN.days===n)).join(' ')+' '+mbtn('an-refresh','Actualiser');
+  if(AN.err){box.innerHTML=`<div class="panel">${empty('Statistiques indisponibles',esc(AN.err),'')}</div>`;return}
+  const d=AN.data;if(!d){box.innerHTML=`<div class="panel">${empty('Chargement…','')}</div>`;return}
+  const ds=d.days||[],mx=Math.max(1,...ds.map(x=>x.views)),nc=(d.clicks||[]).filter(k=>k.dev===AN.dev).length,w=AN.dev==='d'?1280:390;
+  const old=box.querySelector('#an-frame');
+  if(old&&box.dataset.anKey===AN.days+AN.dev+d.views){anHeat(old);return}
+  box.dataset.anKey=AN.days+AN.dev+d.views;
+  box.innerHTML=`<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px"><div class="panel kpi"><div class="lab">Visites</div><div class="val">${fmt(d.visits||0)}</div><div class="foot">sur ${AN.days} jours</div></div><div class="panel kpi"><div class="lab">Pages vues</div><div class="val">${fmt(d.views||0)}</div><div class="foot">alpinisem.com</div></div></div>
+   <div class="panel" style="margin-top:14px"><div class="ph2"><h2>Visites par jour</h2></div><div style="display:flex;align-items:flex-end;gap:2px;height:120px">${ds.map(x=>`<i title="${esc(short(x.d))} : ${x.visits} visites, ${x.views} vues" style="flex:1;min-width:2px;background:var(--c-com);border-radius:2px 2px 0 0;height:${Math.max(2,x.views/mx*100)}%"></i>`).join('')}</div></div>
+   <div class="grid two" style="margin-top:14px"><div class="panel"><div class="ph2"><h2>Heures de visite</h2><span class="muted">heure de Paris</span></div><div style="display:flex;align-items:flex-end;gap:2px;height:110px">${Array.from({length:24},(_,h)=>{const n=((d.hours||[]).find(x=>x.h===h)||{n:0}).n,m=Math.max(1,...(d.hours||[]).map(x=>x.n));return `<i title="${h} h : ${n} vues" style="flex:1;background:var(--c-part);border-radius:2px 2px 0 0;height:${Math.max(2,n/m*100)}%"></i>`}).join('')}</div><div class="muted" style="display:flex;justify-content:space-between;font-size:11px;margin-top:4px"><span>0 h</span><span>6 h</span><span>12 h</span><span>18 h</span><span>23 h</span></div></div>
+   <div class="panel"><div class="ph2"><h2>Derniers accès</h2><span class="muted">date et heure</span></div><div class="dl" style="max-height:220px;overflow:auto">${(d.recent||[]).map(x=>`<div class="prow"><span class="nm">${esc(new Date(x.at).toLocaleString('fr-FR',{timeZone:'Europe/Paris',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}))}</span><span class="m">${esc(x.page||'')} · ${x.dev==='m'?'téléphone':'ordinateur'}</span></div>`).join('')||'<div class="kc-e">Pas encore de données</div>'}</div></div></div>
+   <div class="grid two" style="margin-top:14px"><div class="panel"><div class="ph2"><h2>Pages les plus vues</h2></div><div class="dl">${(d.pages||[]).map(x=>`<div class="prow"><span class="nm">${esc(x.page)}</span><span class="pct">${fmt(x.n)}</span></div>`).join('')||'<div class="kc-e">Pas encore de données</div>'}</div></div>
+   <div class="panel"><div class="ph2"><h2>Boutons les plus cliqués</h2></div><div class="dl">${(d.targets||[]).map(x=>`<div class="prow"><span class="nm">${esc(x.t)}</span><span class="pct">${fmt(x.n)}</span></div>`).join('')||'<div class="kc-e">Pas encore de données</div>'}</div></div></div>
+   <div class="panel" style="margin-top:14px"><div class="ph2"><h2>Carte de chaleur des clics</h2><span>${btn('an-dev','dev','d','Ordinateur',AN.dev==='d')} ${btn('an-dev','dev','m','Téléphone',AN.dev==='m')}</span></div><p class="muted" style="margin:0 0 10px">${fmt(nc)} clics. Plus c'est rouge, plus on clique. Fais défiler la page dans le cadre.</p><div style="overflow:auto;border:1px solid var(--line);border-radius:10px"><iframe id="an-frame" title="Carte de chaleur de la page d'accueil" src="${esc(location.pathname+location.search)}#accueil" style="display:block;border:0;width:${w}px;height:720px;margin:0 auto"></iframe></div></div>`;
+  const fr=box.querySelector('#an-frame');fr.onload=()=>setTimeout(()=>anHeat(fr),1500)}};
+{const r0=renderPlus;renderPlus=function(){r0();if(B&&B.user&&AN.can===null)anCheck();const n=$('.navbtn[data-view="audience"]');if(n)n.hidden=AN.can!==true}}
+/* ---------- fin ajout Benjamin (audience) ---------- */
+
 
 ACT['guide-new']=()=>edGuide(null);ACT['guide-ed']=(b,id)=>edGuide(S.guides.find(z=>z.id===id));
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('.kc[data-m]'))e.target.click()});
